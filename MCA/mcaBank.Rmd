@@ -1,0 +1,161 @@
+---
+title: "MCA - Bank Marketing"
+output: html_document
+---
+
+## R Markdown
+
+Es una técnica descriptiva o exploratoria cuyo objetivo es resumir una gran cantidad de datos en un
+
+número reducido de dimensiones, con la menor pérdida de información posible.
+
+En esta línea, su objetivo es similar al de los métodos factoriales, salvo que en el caso del análisis de
+
+correspondencias el método se aplica sobre variables categóricas u ordinales. 
+
+
+<https://drive.google.com/open?id=0B6GfzvSmNPwFQmw0NFhFeW90Y00>.
+
+
+#Paquetes utilizados
+
+FactoMineR(for computing MCA) and factoextra (for MCA visualization) see: <http://www.sthda.com/english/wiki/multiple-correspondence-analysis-essentials-interpretation-and-application-to-investigate-the-associations-between-categories-of-multiple-qualitative-variables-r-software-and-data-mining>.
+
+```{r cars}
+library("FactoMineR")
+library("factoextra")
+```
+
+##Data Set
+
+Este conjunto de datos se obtuvo del Depósito de Datos UC Irvine y contiene información relacionada con una campaña de marketing directo de una institución bancaria portuguesa y sus intentos de conseguir que sus clientes obtengan un credito.
+
+```{r}
+
+MyData <- read.csv(file="/home/radianv/Github/metodosMultivariados2017/MCA/bank/bank-full2.csv", header=TRUE, sep=";")
+MyData <- head(MyData)[,2:7]
+```
+```{r}
+summary(MyData)
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+for (i in 1:ncol(MyData)) {
+  plot(MyData[,i], main=colnames(MyData)[i],
+       ylab = "Count", col="steelblue", las = 2)
+  }
+```
+
+```{r}
+res.mca <- MCA(MyData, graph = FALSE)
+summary(res.mca, nb.dec = 2, ncp = 2)
+```
+
+
+```{r}
+get_mca_var(res.mca)
+```
+```{r}
+var <- get_mca_var(res.mca)
+plot(res.mca, choix = "var")
+```
+
+```{r}
+head(round(var$coord, 2))
+```
+```{r}
+fviz_mca_var(res.mca, col.var="black", shape.var = 15)
+```
+
+```{r}
+categories <- rownames(var$coord)
+print(categories)
+
+```
+```{r}
+library("corrplot")
+corrplot(var$contrib, is.corr = FALSE)
+```
+
+```{r}
+fviz_contrib(res.mca, choice ="var", axes = 1)
+```
+```{r}
+fviz_contrib(res.mca, choice = "var", axes = 3)
+```
+```{r}
+fviz_contrib(res.mca, choice = "var", axes = 1:3)
+```
+```{r}
+fviz_mca_var(res.mca, alpha.var="contrib")+
+  theme_minimal()
+```
+
+
+
+```{r}
+marital <- as.factor(MyData$marital)
+fviz_mca_ind(res.mca, label = "none", habillage=marital)
+```
+
+
+```{r}
+# Color by groups
+# Add concentration ellipses
+# Use repel = TRUE to avoid overplotting
+grp <- as.factor(MyData[, "marital"])
+fviz_mca_ind(res.mca,  habillage = grp,
+             addEllipses = TRUE, repel = TRUE)
+```
+
+```{r}
+fviz_mca_biplot(res.mca, 
+  habillage = marital, addEllipses = TRUE,
+  label = "var", shape.var = 15) +
+  scale_color_brewer(palette="Dark2")+
+  theme_minimal()
+
+```
+```{r}
+plotellipses(res.mca, keepvar="all")
+```
+
+
+```{r}
+plotellipses(res.mca, keepvar=c("marital", "education"))
+```
+
+
+
+```{r}
+cats = apply(MyData, 2, function(x) nlevels(as.factor(x)))
+mca1_vars_df = data.frame(res.mca$var$coord, Variable = rep(names(cats), cats))
+mca1_obs_df = data.frame(res.mca$ind$coord)
+
+ggplot(data=mca1_vars_df, 
+       aes(x = Dim.1, y = Dim.2, label = rownames(mca1_vars_df))) +
+ geom_hline(yintercept = 0, colour = "gray70") +
+ geom_vline(xintercept = 0, colour = "gray70") +
+ geom_text(aes(colour=Variable)) +
+ ggtitle("MCA plot of variables using R package FactoMineR")
+```
+
+```{r}
+ggplot(data = mca1_obs_df, aes(x = Dim.1, y = Dim.2)) +
+  geom_hline(yintercept = 0, colour = "gray70") +
+  geom_vline(xintercept = 0, colour = "gray70") +
+  geom_point(colour = "gray50", alpha = 0.7) +
+  geom_density2d(colour = "gray80") +
+  geom_text(data = mca1_vars_df, 
+            aes(x = Dim.1, y = Dim.2, 
+                label = rownames(mca1_vars_df), colour = Variable)) +
+  ggtitle("MCA plot of variables using R package FactoMineR") +
+  scale_colour_discrete(name = "Variable")
+
+```
+

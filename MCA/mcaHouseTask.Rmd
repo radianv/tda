@@ -1,0 +1,131 @@
+---
+title: "MCA - House Task"
+output: html_document
+---
+
+## R Markdown
+
+Es una técnica descriptiva o exploratoria cuyo objetivo es resumir una gran cantidad de datos en un
+
+número reducido de dimensiones, con la menor pérdida de información posible.
+
+En esta línea, su objetivo es similar al de los métodos factoriales, salvo que en el caso del análisis de
+
+correspondencias el método se aplica sobre variables categóricas u ordinales. 
+
+
+<https://drive.google.com/open?id=0B6GfzvSmNPwFQmw0NFhFeW90Y00>.
+
+
+#Paquetes utilizados
+
+FactoMineR(for computing MCA) and factoextra (for MCA visualization) see: <http://www.sthda.com/english/wiki/multiple-correspondence-analysis-essentials-interpretation-and-application-to-investigate-the-associations-between-categories-of-multiple-qualitative-variables-r-software-and-data-mining>.
+
+```{r cars}
+library("FactoMineR")
+library("factoextra")
+```
+
+##Data Set
+
+Este conjunto de datos se obtuvo del Depósito de Datos UC Irvine y contiene información relacionada con una campaña de marketing directo de una institución bancaria portuguesa y sus intentos de conseguir que sus clientes obtengan un credito.
+
+![House Task Dataset.](http://www.sthda.com/sthda/RDoc/images/ca-housetasks.png)
+
+
+```{r}
+
+library("gplots")
+# 1. convert the data as a table
+dt <- as.table(as.matrix(housetasks))
+# 2. Graph
+balloonplot(t(dt), main ="housetasks", xlab ="", ylab="",
+            label = FALSE, show.margins = FALSE)
+```
+
+```{r}
+for (i in 1:ncol(dt)) {
+  plot(dt[,i], main=colnames(dt)[i],
+       ylab = "Count", col="steelblue", las = 2)
+  }
+```
+
+```{r}
+mosaicplot(dt, shade = TRUE, las=2,
+           main = "housetasks")
+```
+
+```{r}
+res.ca <- CA(housetasks, graph = FALSE)
+print(res.ca)
+```
+
+```{r}
+summary(res.ca, nb.dec = 2, ncp = 2)
+```
+
+```{r}
+eigenvalues <- get_eigenvalue(res.ca)
+head(round(eigenvalues, 2))
+```
+
+```{r}
+fviz_screeplot(res.ca) +
+ geom_hline(yintercept=33.33, linetype=2, color="red")
+```
+
+```{r}
+var <- get_ca_row(res.ca)
+plot(res.ca)
+```
+
+```{r}
+head(round(var$coord, 2))
+```
+
+```{r}
+fviz_ca_row(res.ca, col.var="black", shape.var = 15)
+```
+
+```{r}
+categories <- rownames(var$coord)
+print(categories)
+```
+
+```{r}
+library("corrplot")
+corrplot(var$contrib, is.corr = FALSE)
+```
+```{r}
+fviz_contrib(res.ca, choice = "row", axes = 1)
+```
+
+```{r}
+fviz_contrib(res.ca, choice = "row", axes = 2)
+```
+
+```{r}
+fviz_contrib(res.ca, choice = "row", axes = 1:3)
+```
+
+```{r}
+fviz_ca_row(res.ca, alpha.var="contrib")+
+  theme_minimal()
+```
+
+```{r}
+fviz_ca_row(res.ca, alpha.row="contrib")+
+  theme_minimal()
+```
+
+```{r}
+
+fviz_ca_biplot(res.ca)+
+  theme_minimal()
+```
+
+```{r}
+fviz_ca_biplot(res.ca, map ="rowprincipal", arrow = c(TRUE, TRUE))
+
+```
+
